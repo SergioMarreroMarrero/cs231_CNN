@@ -34,16 +34,25 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
+  # Calculate the scores
   scores = X.dot(W)
+
+  # Create a matrix to store the softmax probabilities and lost
   pscores = scores.copy()
   L = np.zeros(N,)
+
+  # Loop to iterate all samples
   for image in range(N):
-    logC = np.max(scores[image,:])
+
+    logC = np.max(scores[image,:]) # add this constant to avoid computationals problems
     pscores[image,:] -= logC
+
     exp_pscore = np.exp(pscores[image,:])
-    sum_exp_score = np.sum(exp_pscore)
-    pscores[image,:] = exp_pscore/sum_exp_score
-    L[image] = -np.log(pscores[image,y[image]])
+    sum_exp_score = np.sum(exp_pscore) # Denominator
+
+    pscores[image,:] = exp_pscore/sum_exp_score # Softmax probabilities
+
+    L[image] = -np.log(pscores[image,y[image]]) #Lost
 
   # Add regularization to the loss.
   loss = np.sum(L)/N + 0.5 * reg * np.sum(W * W)
