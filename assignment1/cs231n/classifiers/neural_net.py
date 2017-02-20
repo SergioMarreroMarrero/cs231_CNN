@@ -240,14 +240,18 @@ class TwoLayerNet(object):
     val_acc_history = []
 
     for it in xrange(num_iters):
-      X_batch = None
-      y_batch = None
+      index = np.random.choice(X.shape[0],batch_size)
+      X_batch = X[index, :] 
+      y_batch = y[index]
 
       #########################################################################
       # TODO: Create a random minibatch of training data and labels, storing  #
-      # them in X_batch and y_batch respectively.                             #
+      # them in X_batch and y_batch respectively.         
+
+      # Hint: Use np.random.choice to generate indices. Sampling with         #
+      # replacement is faster than sampling without replacement.              #                    #
       #########################################################################
-      pass
+      
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -262,7 +266,14 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+
+
+
+      self.params['W1'] -= learning_rate * grads['W1']
+      self.params['W2'] -= learning_rate * grads['W2']
+      self.params['b1'] -= learning_rate * grads['b1']
+      self.params['b2'] -= learning_rate * grads['b2']
+      
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -302,12 +313,52 @@ class TwoLayerNet(object):
       the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
       to have class c, where 0 <= c < C.
     """
-    y_pred = None
+    y_pred = np.zeros((X.shape[0],))
+
+    W1 = self.params['W1']
+    W2 = self.params['W2']
+    b1 = self.params['b1']
+    b2 = self.params['b2'] 
 
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+
+    # Calculate the proobabilities
+    ##################################################################
+    # We use the architecture of NNa and stop just before calculate the Loss
+    # Compute the forward pass until the scores
+    axon1 = np.dot(X,W1) + b1 # fully connected the inputs with with W1 add up the bias
+
+    activation1 = np.maximum(0, axon1) # activation function RELU
+
+    axon2 = np.dot(activation1,W2) + b2 # fully connected the inputs of two layers with W2
+
+    scores = axon2.copy()
+
+ ## SOFTMAX ##
+    #1) Transform the scores matrix in a probabilities space
+
+    #1.1) Create the matrix which stores the probabilities
+    pscores = scores.copy()
+
+    #1.2) Add the constant to avoid the convergence problems
+    logC = np.max(scores , axis = 1).reshape(scores.shape[0],1)
+    pscores -= logC
+
+    #1.3) exp() all values
+    exp_pscore = np.exp(pscores)
+
+    # 1.4) Calculate the sum of each row 
+    sum_exp_score = np.sum(exp_pscore , axis = 1).reshape(scores.shape[0],1)
+
+    #1.5) Calculate the probabilities space of each sample
+    pscores = exp_pscore/sum_exp_score
+    #####################################################33
+ 
+    # 2.1) Select the class predicted
+    y_pred = np.argmax(pscores, axis = 1)
+
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
